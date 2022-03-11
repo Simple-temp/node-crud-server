@@ -51,11 +51,51 @@ client.connect(err => {
 
   app.delete("/deleteitem/:id",(req,res)=>{
     const id = req.params.id
-    console.log(id)
     collection.deleteOne({_id:ObjectID(req.params.id)})
     .then(function(result){
       res.send(result.deletedCount > 0)
     })
+  })
+
+  app.delete("/deleteAllItem",(req,res)=>{
+    collection.deleteMany({})
+    .then(function(result){
+      res.send(result.deletedCount > 0)
+    })
+  })
+
+  app.get("/getitem/:id",(req,res)=>{
+
+    const id = req.params.id
+    collection.find({_id:ObjectID(id)})
+    .toArray((err,document)=>{
+      res.send(document[0])
+    })
+
+  })
+
+  app.patch("/updateitem/:id",(req,res)=>{
+    const id = req.params.id
+    const file = req.files.file
+    const name = req.body.name
+    const title = req.body.title
+    const msg = req.body.msg
+    const newImg = file.data
+    const newFile = newImg.toString("base64")
+    var image = {
+      contentType: file.mimetype,
+      size: file.size,
+      img: Buffer.from(newFile, "base64")
+    }
+    console.log({id,name,title,image,msg})
+    collection.updateOne({_id:ObjectID(id)},
+    {
+      $set : { name : name, title : title, image : image, msg : msg }
+    })
+    .then(function(result){
+      res.send(result.modifiedCount > 0)
+    })
+
   })
 
   console.log("db connected")
